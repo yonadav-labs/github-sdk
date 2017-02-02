@@ -20,11 +20,14 @@ def signup(request):
     except Exception, e:
         return Response({'error': 'Please provide a valid email and password!'})
 
-    user = User.objects.create(username=email, email=email)
-    user.set_password(password)
-    user.save()
+    try:
+        user = User.objects.create(username=email, email=email)
+        user.set_password(password)
+        user.save()
+    except Exception, e:
+        return Response({'error': 'The user already exists!'})
 
-    token = guser.create_authorization(["repo"], "Note created by GAuth").token
+    token = guser.create_authorization(["user", "repo", "admin:org"], "token for "+email).token
     GAuth.objects.create(user=user, token=token)
 
     return Response({"success": 1,
@@ -112,13 +115,12 @@ def members(request, org, team):
             return Response({'error': 'Please provide a valid member login!'})
             
         action = request.data.get('action')
-        if action == 'invite':
-            team.add_to_members(member)
-        else:
+        if action == 'remove':
             team.remove_from_members(member)
+        else:
+            team.add_membership(member)
 
-        return Response({"success": 1,
-                         "id": team.id})
+        return Response({"success": 1})
     else:
         members = [{"login": item.login, "id": item.id} for item in team.get_members()]
         return Response({"success": 1,

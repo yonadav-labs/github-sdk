@@ -125,3 +125,31 @@ def members(request, org, team):
         members = [{"login": item.login, "id": item.id} for item in team.get_members()]
         return Response({"success": 1,
                          "members": members})
+
+
+@api_view(["POST"])
+def assign_repo(request, org, team):
+    token = request.META.get('HTTP_TOKEN')
+
+    if not GAuth.objects.filter(token=token).exists():
+        return Response({'error': 'Please provide a valid token!'})
+
+    try:
+        g = Github(token)
+        org = g.get_organization(org)
+    except Exception, e:
+        return Response({'error': 'Please provide a valid organization!'})
+
+    try:
+        repo_name = request.data.get('repo_name')
+        repo = org.get_repo(repo_name)
+    except Exception, e:
+        return Response({'error': 'Please provide a valid repo name!'})
+
+    try:
+        team = org.get_team(int(team))
+    except Exception, e:
+        return Response({'error': 'Please provide a valid team id!'})
+
+    team.add_to_repos(repo)
+    return Response({"success": 1})

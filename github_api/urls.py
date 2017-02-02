@@ -24,4 +24,5 @@ urlpatterns = [
     url(r'^api/v1/repos/(?P<org>[\w-]+)/$', repos),
     url(r'^api/v1/teams/(?P<org>[\w-]+)/$', teams),
     url(r'^api/v1/members/(?P<org>[\w-]+)/(?P<team>\d+)/$', members),
+    url(r'^api/v1/assign_repo/(?P<org>[\w-]+)/(?P<team>\d+)/$', assign_repo),
 ]

@@ -21,4 +21,7 @@ from gauth.views import *
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^api/v1/signup/$', signup),
+    url(r'^api/v1/repos/(?P<org>[\w-]+)/$', repos),
+    url(r'^api/v1/teams/(?P<org>[\w-]+)/$', teams),
+    url(r'^api/v1/members/(?P<org>[\w-]+)/(?P<team>\d+)/$', members),
 ]

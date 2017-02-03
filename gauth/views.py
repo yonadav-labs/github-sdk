@@ -1,3 +1,4 @@
+import random
 from github import Github
 
 from rest_framework.decorators import api_view
@@ -16,7 +17,7 @@ def signup(request):
     try:
         g = Github(email, password)
         guser = g.get_user()
-        email = guser.email
+        email_ = guser.email
     except Exception, e:
         return Response({'error': 'Please provide a valid email and password!'})
 
@@ -25,9 +26,11 @@ def signup(request):
         user.set_password(password)
         user.save()
     except Exception, e:
+        # raise
         return Response({'error': 'The user already exists!'})
 
-    token = guser.create_authorization(["user", "repo", "admin:org"], "token for "+email).token
+    token = guser.create_authorization(["user", "repo", "admin:org"], 
+        "token for {}.{}".format(email, random.randint(1, 10000))).token
     GAuth.objects.create(user=user, token=token)
 
     return Response({"success": 1,

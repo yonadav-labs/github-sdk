@@ -1,5 +1,6 @@
 import random
 from github import Github
+from github.GithubException import GithubException
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -53,14 +54,16 @@ def repos(request, org):
     if request.method == "POST":        # create a repo
         try:
             repo_name = request.data.get('repo_name')
-            repo = org.create_repo(repo_name)
-        except Exception, e:
-            return Response({'error': 'Please provide a valid repo name!'})
+            private = request.data.get('private', False)
+            repo = org.create_repo(repo_name, private=private)
+        except GithubException, e:
+            e.data['status'] = e.status
+            return Response(e.data)
 
         return Response({"success": 1,
                          "id": repo.id})
     else:
-        repos = [{"name": item.name, "id": item.id} for item in org.get_repos()]
+        repos = [{"name": item.name, "id": item.id, "private": item.private} for item in org.get_repos()]
         return Response({"success": 1,
                          "repos": repos})
 
@@ -78,12 +81,14 @@ def teams(request, org):
     except Exception, e:
         return Response({'error': 'Please provide a valid organization!'})
 
-    if request.method == "POST":        # create a repo
+    if request.method == "POST":        # create a team
         try:
             team_name = request.data.get('team_name')
-            team = org.create_team(team_name)
-        except Exception, e:
-            return Response({'error': 'Please provide a valid team name!'})
+            privacy = request.data.get('privacy', 'closed')
+            team = org.create_team(team_name, privacy=privacy)
+        except GithubException, e:
+            e.data['status'] = e.status
+            return Response(e.data)
             
         return Response({"success": 1,
                          "id": team.id})
@@ -154,5 +159,6 @@ def assign_repo(request, org, team):
     except Exception, e:
         return Response({'error': 'Please provide a valid team id!'})
 
-    team.add_to_repos(repo)
+    permission = request.data.get('permission', 'pull')
+    team.add_to_repos(repo, permission)
     return Response({"success": 1})
